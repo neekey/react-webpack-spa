@@ -1,4 +1,5 @@
 const path = require('path');
+const RewriteImportPlugin = require("less-plugin-rewrite-import");
 const ENV = process.env.NODE_ENV;
 const webpack = require('webpack') || 'development';
 
@@ -62,6 +63,10 @@ module.exports = {
                 loader: 'style!css?modules&localIdentName=[path][name]---[local]---[hash:base64:5]!sass',
             },
             {
+                test: /\.less/,
+                loader: 'style!css!less',
+            },
+            {
                 test: /\.html$/,
                 loader: 'html',
             },
@@ -70,7 +75,7 @@ module.exports = {
                 loader: 'json',
             },
             {
-                test: /\.(png|jpg)$/,
+                test: /\.(png|jpg|gif|woff|svg|eot|ttf|woff2)$/,
                 loader: 'url-loader?limit=1024&name=[name]-[hash:8].[ext]!image-webpack',
             },
             {
@@ -85,6 +90,16 @@ module.exports = {
     plugins: PLUGINS,
     sassLoader: {
         includePaths: [bourbon.includePaths, bourbonNeat.includePaths],
+    },
+
+    lessLoader: {
+        lessPlugins: [
+            new RewriteImportPlugin({
+                paths: {
+                    '../../theme.config':  __dirname + '/../app/semantic-ui/theme.config',
+                },
+            }),
+        ],
     },
 
     eslint: {

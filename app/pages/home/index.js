@@ -7,6 +7,11 @@ export default React.createClass({
     },
 
     render() {
-        return <div>home</div>;
+        return (<div>
+            <h1>Home</h1>
+            <div>
+                <button className="ui button" >Neekey</button>
+            </div>
+        </div>);
     },
 });
