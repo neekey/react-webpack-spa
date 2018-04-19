@@ -1,92 +1,145 @@
-const path = require('path');
-const ENV = process.env.NODE_ENV;
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const webpack = require('webpack');
-const ROOT_DIR = path.resolve(__dirname);
-const SRC_DIR = path.resolve(__dirname, 'app');
-
-const BUILD_DIR = path.resolve(__dirname, 'build');
-const PLUGINS = [];
-const PAGE_ENTRIES = {
-  index: path.resolve(SRC_DIR, 'index.js'),
-};
-
-if (ENV === 'development') {
-  PAGE_ENTRIES['webpack-dev-server'] = 'webpack/hot/dev-server';
-}
-
-PLUGINS.push(new HtmlWebpackPlugin({
-  inject: 'body',
-  template: '!!ejs!app/index.ejs',
-  filename: 'index.html',
-  chunks: ['index'],
-  chunksSortMode: 'dependency',
-  env: process.env,
-}));
+var path = require('path');
+var webpack = require('webpack');
+var HtmlWebpackPlugin = require('html-webpack-plugin');
+var buildPath = path.resolve(__dirname, 'dist');
+var srcPath = path.resolve(__dirname, 'src');
+var scssPath = path.resolve(srcPath);
+var autoprefixer = require('autoprefixer');
+var nodeModulePath = path.resolve(__dirname, 'node_modules');
+var IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 var webpackConfig = {
-  devtool: 'eval',
-  entry: PAGE_ENTRIES,
-  output: {
-    path: BUILD_DIR,
-    filename: '[name].[hash:8].js',
+  entry: {
+    index: path.join(srcPath, 'index.js'),
   },
-  resolve: {
-    root: ROOT_DIR,
+  output: {
+    path: buildPath,
+    filename: process.env.NODE_ENV === 'production' ? '[name].[chunkhash].js' : '[name].js',
   },
   module: {
-    preLoaders: [
+    rules: [
       {
         test: /\.jsx?$/,
-        loader: 'eslint',
-        include: SRC_DIR,
+        enforce: "pre",
+        loader: "eslint-loader",
+        include: srcPath,
       },
-    ],
-    loaders: [
       {
-        test: /\.css$/, // Only .css files
-        loader: 'style!css?localIdentName=[path][name]---[local]---[hash:base64:5]', // Run both loaders
+        test: /\.ejs$/,
+        loader: 'ejs-loader',
+      },
+      {
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
+        use: [
+          {
+            loader: 'babel-loader',
+            options: {
+              presets: [
+                'env',
+                'react',
+              ],
+            },
+          },
+        ],
+      },
+      {
+        test: /\.css$/,
+        use: [
+          { loader: 'style-loader' },
+          { loader: 'css-loader', options: { minimize: IS_PRODUCTION } },
+          { loader: 'postcss-loader', options: { plugins: () => [autoprefixer] } },
+        ],
       },
       {
         test: /\.scss$/,
-        loader: 'style!css?module&camelCase&localIdentName=[local]-[hash:5]!sass',
+        use: [
+          { loader: 'style-loader' },
+          {
+            loader: 'css-loader',
+            options: {
+              minimize: IS_PRODUCTION,
+              module: true,
+              camelCase: true,
+              localIdentName: '[local]-[hash:5]',
+            }
+          },
+          { loader: 'postcss-loader', options: { plugins: () => [autoprefixer] } },
+          {
+            loader: 'sass-loader',
+            options: {
+              includePaths: [scssPath, nodeModulePath],
+              data: '@import "' + path.resolve(srcPath, 'app/styles/theme.scss') + '";',
+            },
+          },
+        ],
       },
       {
-        test: /\.html$/,
-        loader: 'html',
+        test: /\.less/,
+        use: [
+          { loader: 'style-loader' },
+          { loader: 'css-loader', options: { minimize: IS_PRODUCTION } },
+          { loader: 'postcss-loader', options: { plugins: () => [autoprefixer] } },
+          {
+            loader: 'less-loader',
+            options: {
+              paths: [
+                srcPath,
+                nodeModulePath,
+              ],
+            }
+          },
+        ],
       },
       {
-        test: /\.json$/,
-        loader: 'json',
-      },
-      {
-        test: /\.(png|jpg|gif|woff|svg|eot|ttf|woff2)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'file-loader?name=[name]-[hash:8].[ext]',
-      },
-      {
-        test: /\.jsx?$/,
-        exclude: /(node_modules|bower_components)/,
-        loader: 'babel',
-        query: {presets: ['react', 'es2015']}
-        // 'babel-loader' is also a legal name to reference
+        test: /\.(png|jpg|gif|woff|svg|eot|ttf|woff2)$/,
+        use: [
+          { loader: 'file-loader?name=[name]-[hash:8].[ext]' },
+        ],
       },
     ],
   },
-  plugins: PLUGINS,
-  imageWebpackLoader: {
-    pngquant: {
-      quality: '65-90',
-      speed: 4,
-    },
+  plugins: [
+    // extract common js into one filejs
+    new webpack.optimize.CommonsChunkPlugin({
+      names: ['vendor'],
+      minChunks: function(module){
+        return module.context && module.context.indexOf("node_modules") !== -1;
+      }
+    }),
+
+    // use html-webpack-plugin to create index.html
+    new HtmlWebpackPlugin({
+      inject: 'body',
+      template: 'src/index.ejs',
+      filename: 'index.html',
+      chunks: ['vendor', 'index'],
+      chunksSortMode: 'dependency',
+      environment: process.env.NODE_ENV,
+    }),
+  ],
+  resolve: {
+    unsafeCache: !IS_PRODUCTION,
+    symlinks: false,  // https://github.com/webpack/webpack/issues/1866
+    modules: [
+      'node_modules',
+      srcPath,
+    ],
   },
+  devServer: {
+    disableHostCheck: true,
+  }
 };
 
-if (process.env.NODE_ENV === 'production') {
+if (IS_PRODUCTION) {
+  webpackConfig.devtool = 'source-map';
   webpackConfig.plugins = webpackConfig.plugins.concat([
+    // define variable available in code
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production'),
     }),
     new webpack.optimize.UglifyJsPlugin({
+      sourceMap: true,
       compress: {
         warnings: false,
       },
@@ -94,6 +147,12 @@ if (process.env.NODE_ENV === 'production') {
         comments: false,
       },
     }),
+  ]);
+} else {
+  webpackConfig.devtool = 'eval';
+  webpackConfig.plugins = webpackConfig.plugins.concat([
+    // handle errors more cleanly, recover after syntax error
+    new webpack.NoEmitOnErrorsPlugin(),
   ]);
 }
 
