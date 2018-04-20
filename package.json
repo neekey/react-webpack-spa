@@ -22,15 +22,10 @@
     "classnames": "^2.2.5",
     "deep-equal": "^1.0.1",
     "history": "^3.0.0",
-    "prop-types": "^15.5.10",
-    "react": "^15.3.0",
-    "react-addons-create-fragment": "^15.3.2",
-    "react-addons-css-transition-group": "^15.3.1",
-    "react-addons-shallow-compare": "^15.4.1",
-    "react-addons-update": "^15.3.1",
-    "react-dom": "^15.0.2",
-    "react-router": "^3.0.0",
-    "react-tap-event-plugin": "^2.0.0"
+    "prop-types": "^15.6.1",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
+    "react-router": "^3.0.0"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.1",
