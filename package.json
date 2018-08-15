@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "NODE_ENV=production node ./node_modules/webpack/bin/webpack --config webpack.config.js",
-    "dev": "NODE_ENV=development node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 0.0.0.0 --progress --colors --hot --inline --content-base=build  --history-api-fallback",
+    "dev": "NODE_ENV=development node ./node_modules/webpack-dev-server/bin/webpack-dev-server --port 8081 --host 0.0.0.0 --progress --colors --hot --inline --content-base=build  --history-api-fallback",
     "test": "./node_modules/.bin/mocha-webpack --opts ./test/mocha-webpack.opts --watch",
     "cy-test": "node ./node_modules/.bin/cypress run --record --key 9d3e277a-c799-4647-9895-53551469d371"
   },

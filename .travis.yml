@@ -12,5 +12,4 @@ cache:
 install:
   - npm install
 script:
-  - $(npm bin)/cypress run --record
   - $(npm bin)/start-server-and-test dev http-get://localhost:8081 cy-test
