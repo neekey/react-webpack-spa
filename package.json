@@ -6,7 +6,8 @@
   "scripts": {
     "build": "NODE_ENV=production node ./node_modules/webpack/bin/webpack --config webpack.config.js",
     "dev": "NODE_ENV=development node ./node_modules/webpack-dev-server/bin/webpack-dev-server --host 0.0.0.0 --progress --colors --hot --inline --content-base=build  --history-api-fallback",
-    "test": "./node_modules/.bin/mocha-webpack --opts ./test/mocha-webpack.opts --watch"
+    "test": "./node_modules/.bin/mocha-webpack --opts ./test/mocha-webpack.opts --watch",
+    "cy-test": "node ./node_modules/.bin/cypress run --record --key 9d3e277a-c799-4647-9895-53551469d371"
   },
   "repository": {
     "type": "git",
@@ -63,6 +64,7 @@
     "sass-loader": "^6.0.6",
     "sinon": "^1.17.4",
     "source-map-support": "^0.4.2",
+    "start-server-and-test": "^1.7.0",
     "style-loader": "^0.18.2",
     "webpack": "^3.5.5",
     "webpack-dev-server": "^2.5.0",
